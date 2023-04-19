@@ -1,40 +1,37 @@
 from faker import Faker
 from university.models import Group, StudentCourse, Student, Course, engine, mapper_registry
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 session = Session(bind=engine)
 
 fake = Faker()
 
+GROUP_COUNT = 10
+STUDENT_COUNT = 200
+COURSE_COUNT = 10
+MIN_STUDENTS_PER_GROUP = 10
+MAX_STUDENTS_PER_GROUP = 30
+MIN_COURSES_PER_STUDENT = 1
+MAX_COURSES_PER_STUDENT = 3
+
 
 def fill_group():
-    for _ in range(10):
+    for _ in range(GROUP_COUNT):
         group_name = fake.bothify(text='??-%#', letters='ASDFGH')
         session.add(Group(name=group_name))
 
 
 def fill_course():
-    subjects = [
-        'math',
-        'biology',
-        'history',
-        'physics',
-        'literature',
-        'chemistry',
-        'psychology',
-        'computer science',
-        'economics',
-        'music']
-
-    for subj in subjects:
-        course_name = subj
+    for subj in range(COURSE_COUNT):
+        course_name = fake.word()
         description = fake.text()
         session.add(Course(name=course_name,
                            description=description))
 
 
 def fill_student():
-    for _ in range(200):
+    for _ in range(STUDENT_COUNT):
         name = fake.first_name()
         surname = fake.last_name()
         session.add(Student(first_name=name,
@@ -48,7 +45,8 @@ def add_group_for_student():
                 session.query(Group)),
             length=7):
         try:
-            for _ in range(fake.random_int(min=10, max=30)):
+            for _ in range(fake.random_int(min=MIN_STUDENTS_PER_GROUP,
+                                           max=MAX_STUDENTS_PER_GROUP)):
                 student = next(students)
                 student.group_id = group.id
                 session.add(student)
@@ -60,7 +58,9 @@ def add_courses_for_students():
     for stud in session.query(Student):
         stud_courses = (session
                         .query(Course)
-                        .limit(fake.random_int(min=1, max=3))
+                        .order_by(func.random())
+                        .limit(fake.random_int(min=MIN_COURSES_PER_STUDENT,
+                                               max=MAX_COURSES_PER_STUDENT))
                         .all())
         for course in stud_courses:
             session.add(StudentCourse(student_id=stud.id,
