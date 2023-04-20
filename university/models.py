@@ -18,7 +18,7 @@ group = Table('group', mapper_registry.metadata,
 
 student = Table('student', mapper_registry.metadata,
                 Column('id', Integer(), primary_key=True),
-                Column('group_id', ForeignKey('group.id')),
+                Column('group_id', ForeignKey('group.id', ondelete="SET NULL")),
                 Column('first_name', String(100), nullable=False),
                 Column('last_name', String(100), nullable=False)
                 )
@@ -30,8 +30,10 @@ course = Table('course', mapper_registry.metadata,
 
 student_course = Table('student_course', mapper_registry.metadata,
                        Column('id', Integer(), primary_key=True),
-                       Column('student_id', ForeignKey('student.id')),
-                       Column('course_id', ForeignKey('course.id')),
+                       Column('student_id', ForeignKey('student.id',
+                                                       ondelete="CASCADE")),
+                       Column('course_id', ForeignKey('course.id',
+                                                      ondelete="CASCADE")),
                        UniqueConstraint('student_id', 'course_id',
                                         name='unique_student_course')
                        )
