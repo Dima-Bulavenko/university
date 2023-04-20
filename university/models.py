@@ -37,19 +37,37 @@ student_course = Table('student_course', mapper_registry.metadata,
                        )
 
 
-class Group:
+class Base:
+    def as_dict(self):
+        return {c.name: getattr(self, c.name)
+                for c in self.__table__.columns}
+
+    @classmethod
+    def create_dict_for_api(cls, query) -> dict:
+        try:
+            data = []
+            for obj in query:
+                data.append(obj.as_dict())
+            return {f"{cls.__table__}": data}
+        except AttributeError as ex:
+            print(ex)
+            return {
+                "message": f"query can't contains {type(obj)} type, only {type(cls)}"}
+
+
+class Group(Base):
     pass
 
 
-class Student:
+class Student(Base):
     pass
 
 
-class Course:
+class Course(Base):
     pass
 
 
-class StudentCourse:
+class StudentCourse(Base):
     pass
 
 
