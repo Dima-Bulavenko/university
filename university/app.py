@@ -1,6 +1,6 @@
 from flask import Flask, request, make_response
 from flask_restful import Api, Resource
-from models import Student, Group, Course, StudentCourse, engine
+from university.models import Student, Group, Course, StudentCourse, engine
 from sqlalchemy.orm import Session
 from sqlalchemy import func
 
@@ -24,14 +24,13 @@ class StudentsApi(Resource):
                 {'message': f"Student {first_name} {last_name} was created"})
         except Exception as ex:
             session.rollback()
-            return make_response({'message': f"{ex}"})
+            return make_response({'message': f"{ex}"}, 400)
 
 
 class StudentApi(Resource):
     def delete(self, student_id):
         try:
-
-            student = session.query(Student).get(student_id)
+            student = session.get(Student, student_id)
             if not student:
                 raise Exception(f"Student id '{student_id}' was not found")
             session.delete(student)
@@ -41,7 +40,7 @@ class StudentApi(Resource):
 
         except Exception as ex:
             session.rollback()
-            return make_response({'error': f"{ex}"})
+            return make_response({'message': f"{ex}"}, 400)
 
 
 class GroupsApi(Resource):
@@ -68,7 +67,7 @@ class CourseStudentsApi(Resource):
 
         return make_response(Student.create_dict_for_api(students))
 
-    def put(self, course_id, student_id):
+    def post(self, course_id, student_id):
         try:
             course = session.get(Course, course_id)
             student = session.get(Student, student_id)
@@ -85,7 +84,7 @@ class CourseStudentsApi(Resource):
                 {"message": f"Student {student.first_name} was added to course {course.name}"})
         except Exception as ex:
             session.rollback()
-            return make_response({"error": f"{ex}"}, 400)
+            return make_response({"message": f"{ex}"}, 400)
 
     def delete(self, course_id, student_id):
         try:
@@ -107,7 +106,7 @@ class CourseStudentsApi(Resource):
                 {"message": f"Student {student.first_name} was deleted from course {course.name}"})
         except Exception as ex:
             session.rollback()
-            return make_response({"error": f"{ex}"}, 400)
+            return make_response({"message": f"{ex}"}, 400)
 
 
 api.add_resource(GroupsApi,
